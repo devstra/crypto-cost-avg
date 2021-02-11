@@ -5,6 +5,16 @@ import time
 
 kraken = krakenex.API()
 
+
+def format_option(opt: str):
+    if opt == "XTZEUR":
+        return opt[:-3]
+    elif opt.find("ZEUR") > 0:
+        return opt[1:-4]
+    else:
+        return opt[:-3]
+
+
 # define UI elements
 st.title("Cryptocurrency Cost Averaging Calculator")
 asset_pair = st.selectbox(
@@ -51,20 +61,21 @@ asset_pair = st.selectbox(
         "USDCEUR",
         "USDTEUR",
         "WAVESEUR",
-        "XDGEUR",
-        "ETCEUR",
-        "ETHEUR",
-        "LTCEUR",
-        "MLNEUR",
-        "REPEUR",
+        "XXDGZEUR",
+        "XETCZEUR",
+        "XETHZEUR",
+        "XLTCZEUR",
+        "XMLNZEUR",
+        "XREPZEUR",
         "XTZEUR",
-        "XBTEUR",
-        "XLMEUR",
-        "XMREUR",
-        "XRPEUR",
-        "ZECEUR",
+        "XXBTZEUR",
+        "XXLMZEUR",
+        "XXMRZEUR",
+        "XXRPZEUR",
+        "XZECZEUR",
         "YFIEUR",
     ],
+    format_func=format_option,
 )
 investment_frequency = st.selectbox(
     "How frequently did you invest?", ["every month", "every 2 weeks", "every week"]
@@ -134,7 +145,9 @@ def display_results(results):
     st.write("Number of BUY orders:    {}".format(result["nb_of_investments"]))
     st.write("Total investment cost:    {:.2f} €".format(result["total_cost"]))
     st.write(
-        "Total asset amount:    {:.8f} {}".format(result["coin_amount"], asset_pair)
+        "Total asset amount:    {:.8f} {}".format(
+            result["coin_amount"], format_option(asset_pair)
+        )
     )
     st.write("Current portfolio value:    {:.2f} €".format(result["current_value"]))
     st.write("Return on investment:    {:.2f} %".format(result["roi"] * 100))
