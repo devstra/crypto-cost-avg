@@ -1,0 +1,2 @@
+krakenex==2.1.0
+streamlit==0.76.0
