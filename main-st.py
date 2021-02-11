@@ -6,6 +6,7 @@ import time
 kraken = krakenex.API()
 
 # define UI elements
+st.title("Cryptocurrency Cost Averaging Calculator")
 asset_pair = st.selectbox(
     "Which asset pair did you invest in?",
     [
@@ -79,13 +80,14 @@ def date_to_timestamp(value: datetime.date) -> int:
     return int(time.mktime(value.timetuple()))
 
 
-def get_ohlc_data(asset_pair, start_date):
+@st.cache
+def get_ohlc_data(asset_pair: str, start_date: int):
     return kraken.query_public(
-        "OHLC", {"pair": asset_pair, "interval": 1440, "since": 1451520000}
+        "OHLC", {"pair": asset_pair, "interval": 1440, "since": start_date}
     )
 
 
-def get_frequency(freq: str):
+def get_frequency(freq: str) -> int:
     if freq == "every month":
         return 30
     elif freq == "every 2 weeks":
@@ -104,7 +106,6 @@ def calculate_profits():
     nb_investments = 0
 
     for index, price in enumerate(ohlc_data):
-        # if even number
         if (index % frequency) == 0:
             coin_amount = coin_amount + recurring_amount / float(price[4])
             nb_investments = nb_investments + 1
@@ -116,47 +117,32 @@ def calculate_profits():
         "coin_amount": coin_amount,
         "current_value": current_value,
         "total_cost": total_cost,
-        "roi": roi,  # x100 to get %
+        "roi": roi,
+        "nb_of_investments": nb_investments,
+        "first_investment_date": ohlc_data[0][0],
     }
 
 
-# need to convert it to float for calculs
+# @st.cache
+def display_results(results):
+    st.write(
+        "Date of first investment: {}".format(
+            datetime.utcfromtimestamp(result["first_investment_date"]).strftime(
+                "%d %B %Y"
+            )
+        )
+    )
+    st.write("Number of BUY orders:    {}".format(result["nb_of_investments"]))
+    st.write("Total investment cost:    {:.2f} €".format(result["total_cost"]))
+    st.write(
+        "Total asset amount:    {:.8f} {}".format(result["coin_amount"], asset_pair)
+    )
+    st.write("Current portfolio value:    {:.2f} €".format(result["current_value"]))
+    st.write("Return on investment:    {:.2f} %".format(result["roi"] * 100))
 
-# interval 15 days, since december 31, 2015
-# coin_ohlc = kraken.query_public(
-#     "OHLC", {"pair": coin, "interval": 1440, "since": 1451520000}
-# )  # CHANGE INTERVAL TO 1440 TO GET DAILY OHLC DATA. NEEDED TO BE MORE PRECISE 1 ADD NEW FEATURES
 
-# result format (<time>, <open>, <high>, <low>, <close>, <vwap>, <volume>, <count>)
-
-# coin_price = kraken.query_public("Ticker", {"pair": coin}) # this is no longer needed. i can just use last day's price
-# latest_price = float(coin_price["result"][coin]["c"][0])
-
-# if len(coin_ohlc["error"]) == 0:
-#     price_history = coin_ohlc["result"][coin]
-#     nb_months = 0
-#     coin_amount = 0.0
-
-#     for index, price in enumerate(price_history):
-#         # if even number
-#         if (index % 2) == 0:
-#             nb_months = nb_months + 1
-#             coin_amount = coin_amount + monthly_investment / float(price[4])
-
-#     roi = (coin_amount * latest_price) / (monthly_investment * nb_months)
-#     st.write(
-#         "First investment: {}".format(
-#             datetime.utcfromtimestamp(coin_ohlc["result"][coin][0][0]).strftime(
-#                 "%d %B %Y"
-#             )
-#         )
-#     )
-#     st.write("Months of investment: {}".format(nb_months))
-#     st.write("Total investment: {:.2f} €".format(monthly_investment * nb_months))
-#     st.write("Total coin amount: {:.8f} {}".format(coin_amount, coin))
-#     st.write("Current portfolio value: {:.2f} €".format(coin_amount * latest_price))
-#     st.write("Return on investment: {:.2f} %".format(roi * 100))
-# else:
-#     st.write(coin_ohlc["error"])
 if submit_button:
-    st.write(calculate_profits())
+    result = calculate_profits()
+    display_results(result)
+
+st.text("Note: the asset pairs and price data are all in EUR and provided by Kraken.")
