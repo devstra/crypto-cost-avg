@@ -6,4 +6,4 @@ This script uses Streamlit to display a GUI in the browser and the Kraken API to
 
 ### Usage
 
-Visit [https://crypto-cost-avg.herokuapp.com/](https://crypto-cost-avg.herokuapp.com/) to use this repo or run it locally with `streamlit run main.py`.
+Visit [https://share.streamlit.io/devstra/crypto-cost-avg/main/main.py](https://share.streamlit.io/devstra/crypto-cost-avg/main/main.py) to use this script online or run it locally with `streamlit run main.py`.
